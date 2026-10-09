@@ -1,0 +1,56 @@
+// ============================================================================
+// French course — a compact way to write its topic stages
+// ============================================================================
+// The same shape as the English course (../en/kit.ts), marked as French
+// (target 'fr'). Titles and settings carry a French form for the interface,
+// which speaks French during this course; meanings and grammar explanations
+// are written in English and Arabic, and the student sees them in their own
+// language (src/lib/home-locale.ts), because a beginner can't read French yet.
+// Every pair is [English, Arabic]; a triple adds the French form first.
+// ============================================================================
+
+import type { SceneLesson, SceneLine, Chunk } from '../../scene-lessons'
+import type { DrillSpec, Pair } from '../../topics/kit'
+
+export { phrase, say } from '../../topics/kit'
+
+/** [French, English, Arabic] */
+export type Triple = readonly [fr: string, en: string, ar: string]
+
+const gl = ([en, ar]: Pair) => ({ en, ar })
+const gl3 = ([fr, en, ar]: Triple) => ({ fr, en, ar })
+
+export function stage(o: {
+  id: string
+  emoji: string
+  title: Triple
+  setting: Triple
+  scene: SceneLine[]
+  phrases: Chunk[]
+  talk: { setting: Triple; lines: SceneLine[] }
+  grammar: { examples: string[]; question: Pair; options: Pair[]; correct: number; explanation: Pair }
+  transfer: { setting: Triple; lines: SceneLine[] }
+  write: { prompt: Pair; mustInclude: string[]; model: string; frame: string }
+  drills?: DrillSpec[]
+}): SceneLesson {
+  return {
+    id: o.id,
+    target: 'fr',
+    emoji: o.emoji,
+    title: gl3(o.title),
+    setting: gl3(o.setting),
+    scene: o.scene,
+    chunks: o.phrases,
+    dialogues: [{ setting: gl3(o.talk.setting), lines: o.talk.lines }],
+    pattern: {
+      examples: o.grammar.examples,
+      question: gl(o.grammar.question),
+      options: o.grammar.options.map(gl),
+      correct: o.grammar.correct,
+      explanation: gl(o.grammar.explanation),
+    },
+    transfer: { setting: gl3(o.transfer.setting), scene: o.transfer.lines },
+    produce: { prompt: gl(o.write.prompt), mustInclude: o.write.mustInclude, model: o.write.model, frame: o.write.frame },
+    drills: o.drills?.map(([sentence, options, meaning]) => ({ sentence, options: [...options], meaning: gl(meaning) })),
+  }
+}
